@@ -1,1065 +1,1175 @@
+```html
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <meta charset="UTF-8">
+  <title>ASISTENCIA QR</title>
 
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
+  <!-- Lector QR -->
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 
-    <title>LECTOR DE ASISTENCIA QR</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
 
-    <script src="https://unpkg.com/html5-qrcode"></script>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #f1f5f9;
+      color: #1e293b;
+    }
 
+    .contenedor {
+      width: 100%;
+      max-width: 650px;
+      margin: 0 auto;
+      padding: 15px;
+    }
 
-    <style>
+    .cabecera {
+      background: #0f3d75;
+      color: white;
+      padding: 22px 15px;
+      text-align: center;
+      border-radius: 0 0 18px 18px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+    }
 
-        * {
-            box-sizing: border-box;
-        }
+    .cabecera h1 {
+      margin: 0;
+      font-size: 28px;
+      font-weight: bold;
+    }
 
-        body {
-            font-family: Arial, sans-serif;
-            background: #eeeeee;
-            margin: 0;
-            padding: 15px;
-            text-align: center;
-        }
+    .cabecera p {
+      margin: 7px 0 0;
+      font-size: 15px;
+    }
 
-        .contenedor {
-            max-width: 500px;
-            margin: auto;
-            background: white;
-            padding: 20px;
-            border-radius: 15px;
-            box-shadow: 0 3px 12px rgba(0,0,0,.15);
-        }
+    .tarjeta {
+      background: white;
+      margin-top: 18px;
+      padding: 18px;
+      border-radius: 18px;
+      box-shadow: 0 3px 12px rgba(0,0,0,0.10);
+    }
 
-        h1 {
-            font-size: 28px;
-            margin: 5px 0;
-        }
+    #lector {
+      width: 100%;
+      max-width: 500px;
+      margin: 15px auto;
+      overflow: hidden;
+      border-radius: 15px;
+    }
 
-        .subtitulo {
-            font-size: 17px;
-            margin-bottom: 20px;
-            color: #555;
-            font-weight: bold;
-        }
+    #lector video {
+      border-radius: 15px !important;
+    }
 
-        #reader {
-            width: 100%;
-            margin-top: 15px;
-        }
+    .boton {
+      width: 100%;
+      border: none;
+      border-radius: 12px;
+      padding: 16px;
+      font-size: 18px;
+      font-weight: bold;
+      cursor: pointer;
+      background: #0f3d75;
+      color: white;
+      transition: 0.2s;
+    }
 
-        #reader video {
-            width: 100% !important;
-            border-radius: 12px;
-        }
+    .boton:hover {
+      background: #0b315e;
+    }
 
-        button {
-            width: 100%;
-            border: none;
-            border-radius: 10px;
-            padding: 16px;
-            font-size: 18px;
-            font-weight: bold;
-            background: #1976d2;
-            color: white;
-            margin-top: 10px;
-            cursor: pointer;
-        }
+    .boton:disabled {
+      background: #94a3b8;
+      cursor: not-allowed;
+    }
 
-        button:disabled {
-            background: #999;
-        }
+    #mensaje {
+      margin-top: 15px;
+      padding: 13px;
+      border-radius: 10px;
+      text-align: center;
+      font-weight: bold;
+      display: none;
+    }
 
-        #resultado {
-            margin-top: 20px;
-            padding: 20px;
-            border-radius: 12px;
-            font-size: 20px;
-            font-weight: bold;
-            min-height: 70px;
-        }
+    .info {
+      background: #e0f2fe;
+      color: #075985;
+    }
 
-        .ok {
-            background: #d4edda;
-            color: #155724;
-        }
+    .exito {
+      background: #dcfce7;
+      color: #166534;
+    }
 
-        .error {
-            background: #f8d7da;
-            color: #721c24;
-        }
+    .error {
+      background: #fee2e2;
+      color: #991b1b;
+    }
 
-        .aviso {
-            background: #fff3cd;
-            color: #856404;
-        }
+    .advertencia {
+      background: #fef3c7;
+      color: #92400e;
+    }
 
-        .nombre {
-            font-size: 25px;
-            margin-top: 12px;
-        }
+    #resultado {
+      margin-top: 15px;
+      padding: 18px;
+      border-radius: 14px;
+      text-align: center;
+      display: none;
+    }
 
-        .hora {
-            font-size: 18px;
-            margin-top: 10px;
-            font-weight: normal;
-        }
+    #resultado .icono {
+      font-size: 48px;
+      margin-bottom: 8px;
+    }
 
-        .estado {
-            font-size: 24px;
-            margin-bottom: 8px;
-        }
+    #resultado .nombre {
+      font-size: 25px;
+      font-weight: bold;
+      margin-top: 5px;
+    }
 
-        .ayuda {
-            margin-top: 15px;
-            font-size: 14px;
-            color: #777;
-            line-height: 1.5;
-        }
+    #resultado .detalle {
+      font-size: 17px;
+      margin-top: 8px;
+    }
 
-    </style>
+    .resultado-ok {
+      background: #dcfce7;
+      color: #166534;
+      border: 2px solid #22c55e;
+    }
 
+    .resultado-ya {
+      background: #fef3c7;
+      color: #92400e;
+      border: 2px solid #f59e0b;
+    }
+
+    .resultado-error {
+      background: #fee2e2;
+      color: #991b1b;
+      border: 2px solid #ef4444;
+    }
+
+    .ayuda {
+      margin-top: 18px;
+      padding: 15px;
+      background: #f8fafc;
+      border-radius: 12px;
+      font-size: 14px;
+      line-height: 1.5;
+      color: #475569;
+    }
+
+    .estado {
+      text-align: center;
+      margin-top: 10px;
+      font-size: 14px;
+      font-weight: bold;
+    }
+
+    .activo {
+      color: #16a34a;
+    }
+
+    .inactivo {
+      color: #64748b;
+    }
+
+    @media (max-width: 480px) {
+
+      .contenedor {
+        padding: 10px;
+      }
+
+      .cabecera h1 {
+        font-size: 24px;
+      }
+
+      .tarjeta {
+        padding: 12px;
+      }
+
+      .nombre {
+        font-size: 21px !important;
+      }
+
+      #resultado .detalle {
+        font-size: 15px;
+      }
+    }
+  </style>
 </head>
-
 
 <body>
 
+  <div class="cabecera">
+    <h1>📱 ASISTENCIA QR</h1>
+    <p>Registro de asistencia mediante código QR</p>
+  </div>
 
-<div class="contenedor">
+  <div class="contenedor">
 
-    <h1>📱 LECTOR QR</h1>
+    <div class="tarjeta">
 
-    <div class="subtitulo">
-        CONTROL DE ASISTENCIA
-    </div>
-
-
-    <button
-        id="botonCamara"
+      <button
+        id="btnCamara"
+        class="boton"
         onclick="iniciarCamara()">
-
         📷 ACTIVAR CÁMARA
+      </button>
 
-    </button>
+      <div
+        id="estadoCamara"
+        class="estado inactivo">
+        Cámara desactivada
+      </div>
 
+      <div id="lector"></div>
 
-    <div id="reader"></div>
+      <div id="mensaje"></div>
 
+      <div id="resultado"></div>
 
-    <div
-        id="resultado"
-        class="aviso">
+      <div class="ayuda">
+        <strong>📌 INSTRUCCIONES</strong><br><br>
 
-        PRESIONE "ACTIVAR CÁMARA"
+        1. Presione <strong>ACTIVAR CÁMARA</strong>.<br>
+        2. Permita el acceso a la cámara cuando el navegador lo solicite.<br>
+        3. Muestre el código QR del estudiante frente a la cámara.<br>
+        4. El sistema registrará automáticamente la asistencia.<br>
+        5. El lector volverá a quedar disponible para el siguiente estudiante.
+      </div>
 
     </div>
 
-
-    <div class="ayuda">
-
-        Permita el acceso a la cámara cuando el navegador lo solicite.
-
-    </div>
-
-</div>
-
+  </div>
 
 
 <script>
 
+  /* =========================================================
+     CONFIGURACIÓN
+  ========================================================= */
 
-// ============================================================
-// CONFIGURACIÓN
-// ============================================================
-
-const URL_APPS_SCRIPT =
+  const URL_APPS_SCRIPT =
     "https://script.google.com/macros/s/AKfycbxabiLIjkp6XMFMvtwg7W3UZRjLwZnVxgTfrGNn-G4EguHn_j1ALClDQ_kUU2aGZg_4/exec";
 
 
-let lector = null;
+  /* =========================================================
+     VARIABLES
+  ========================================================= */
 
-let procesando = false;
+  let lector = null;
 
-let camaraActiva = false;
+  let camaraActiva = false;
 
+  let procesando = false;
 
-// ============================================================
-// VERIFICAR QUE LA LIBRERÍA QR ESTÉ CARGADA
-// ============================================================
+  let ultimoQR = "";
 
-function verificarLibreria() {
-
-    if (
-        typeof Html5Qrcode === "undefined"
-    ) {
-
-        mostrarMensaje(
-            "ERROR",
-            "❌ NO SE PUDO CARGAR EL LECTOR QR",
-            "",
-            ""
-        );
-
-        return false;
-    }
-
-    return true;
-}
+  let ultimoTiempoQR = 0;
 
 
-// ============================================================
-// ACTIVAR CÁMARA
-// ============================================================
+  /* =========================================================
+     MOSTRAR MENSAJE
+  ========================================================= */
 
-async function iniciarCamara() {
+  function mostrarMensaje(texto, tipo = "info") {
 
-    const boton =
-        document.getElementById("botonCamara");
+    const elemento = document.getElementById("mensaje");
 
+    elemento.className = "";
+
+    elemento.classList.add(tipo);
+
+    elemento.innerHTML = texto;
+
+    elemento.style.display = "block";
+  }
+
+
+  /* =========================================================
+     OCULTAR MENSAJE
+  ========================================================= */
+
+  function ocultarMensaje() {
+
+    const elemento = document.getElementById("mensaje");
+
+    elemento.style.display = "none";
+
+  }
+
+
+  /* =========================================================
+     INICIAR CÁMARA
+  ========================================================= */
+
+  async function iniciarCamara() {
+
+    const boton = document.getElementById("btnCamara");
+
+    const estado = document.getElementById("estadoCamara");
 
     try {
 
-        boton.disabled = true;
+      if (camaraActiva) {
+        return;
+      }
 
-        boton.innerText =
-            "📷 PREPARANDO CÁMARA...";
+      /* Verificar HTTPS */
 
-
-        mostrarMensaje(
-            "AVISO",
-            "🔐 SOLICITANDO PERMISO DE CÁMARA...",
-            "",
-            ""
-        );
-
-
-        // ----------------------------------------------------
-        // VERIFICAR LIBRERÍA
-        // ----------------------------------------------------
-
-        if (!verificarLibreria()) {
-
-            boton.disabled = false;
-
-            boton.innerText =
-                "📷 ACTIVAR CÁMARA";
-
-            return;
-        }
-
-
-        // ----------------------------------------------------
-        // VERIFICAR HTTPS
-        // ----------------------------------------------------
-
-        if (
-            location.protocol !== "https:" &&
-            location.hostname !== "localhost"
-        ) {
-
-            throw new Error(
-                "La cámara requiere HTTPS. Abra la página desde GitHub Pages."
-            );
-        }
-
-
-        // ----------------------------------------------------
-        // VERIFICAR API DE CÁMARA
-        // ----------------------------------------------------
-
-        if (
-            !navigator.mediaDevices ||
-            !navigator.mediaDevices.getUserMedia
-        ) {
-
-            throw new Error(
-                "Este navegador no permite utilizar la cámara."
-            );
-        }
-
-
-        // ----------------------------------------------------
-        // PEDIR PERMISO
-        // ----------------------------------------------------
-
-        const prueba =
-            await navigator.mediaDevices.getUserMedia({
-
-                video: true,
-
-                audio: false
-
-            });
-
-
-        // Detener cámara de prueba
-
-        prueba
-            .getTracks()
-            .forEach(function(track) {
-
-                track.stop();
-
-            });
-
+      if (
+        location.protocol !== "https:" &&
+        location.hostname !== "localhost"
+      ) {
 
         mostrarMensaje(
-            "AVISO",
-            "📷 BUSCANDO CÁMARAS...",
-            "",
-            ""
+          "❌ Esta página debe abrirse mediante HTTPS para utilizar la cámara.",
+          "error"
         );
 
-
-        // ----------------------------------------------------
-        // OBTENER CÁMARAS
-        // ----------------------------------------------------
-
-        const camaras =
-            await Html5Qrcode.getCameras();
+        return;
+      }
 
 
-        if (
-            !camaras ||
-            camaras.length === 0
-        ) {
+      boton.disabled = true;
 
-            throw new Error(
-                "No se encontró ninguna cámara disponible."
-            );
+      boton.innerHTML = "⏳ INICIANDO CÁMARA...";
+
+      estado.innerHTML = "Activando cámara...";
+
+      estado.className = "estado";
+
+
+      /* Verificar soporte */
+
+      if (!navigator.mediaDevices ||
+          !navigator.mediaDevices.getUserMedia) {
+
+        throw new Error(
+          "Este navegador no permite utilizar la cámara."
+        );
+
+      }
+
+
+      /*
+       * Solicitar permiso de cámara.
+       * Esto ayuda especialmente en celulares.
+       */
+
+      const permiso =
+        await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: false
+        });
+
+
+      /* Cerrar este stream temporal */
+
+      permiso.getTracks().forEach(track => track.stop());
+
+
+      /*
+       * Obtener cámaras disponibles
+       */
+
+      const camaras =
+        await Html5Qrcode.getCameras();
+
+
+      if (!camaras || camaras.length === 0) {
+
+        throw new Error(
+          "No se encontró ninguna cámara."
+        );
+
+      }
+
+
+      /*
+       * Buscar cámara trasera
+       */
+
+      let camaraSeleccionada = camaras[0];
+
+
+      const camaraTrasera =
+        camaras.find(camara => {
+
+          const nombre =
+            (camara.label || "").toLowerCase();
+
+          return (
+            nombre.includes("back") ||
+            nombre.includes("rear") ||
+            nombre.includes("trasera") ||
+            nombre.includes("posterior")
+          );
+
+        });
+
+
+      if (camaraTrasera) {
+
+        camaraSeleccionada = camaraTrasera;
+
+      }
+
+
+      /*
+       * Crear lector
+       */
+
+      lector = new Html5Qrcode("lector");
+
+
+      /*
+       * Configuración del lector
+       */
+
+      const configuracion = {
+
+        fps: 15,
+
+        qrbox: function(viewfinderWidth, viewfinderHeight) {
+
+          const tamaño =
+            Math.min(viewfinderWidth, viewfinderHeight) * 0.70;
+
+          return {
+            width: Math.floor(tamaño),
+            height: Math.floor(tamaño)
+          };
+
+        },
+
+        aspectRatio: 1.0,
+
+        disableFlip: false
+
+      };
+
+
+      /*
+       * Iniciar lector
+       */
+
+      await lector.start(
+
+        camaraSeleccionada.id,
+
+        configuracion,
+
+        function(decodedText) {
+
+          procesarQR(decodedText);
+
+        },
+
+        function(errorMessage) {
+
+          /*
+           * No mostramos errores normales
+           * de lectura QR porque aparecen
+           * constantemente mientras busca.
+           */
+
         }
 
-
-        // ----------------------------------------------------
-        // SELECCIONAR CÁMARA
-        // ----------------------------------------------------
-
-        let camaraSeleccionada =
-            camaras[0];
+      );
 
 
-        // Intentar encontrar cámara trasera
+      camaraActiva = true;
 
-        for (
-            let i = 0;
-            i < camaras.length;
-            i++
-        ) {
+      boton.disabled = false;
 
-            const nombre =
-                (
-                    camaras[i].label ||
-                    ""
-                ).toLowerCase();
+      boton.innerHTML = "🟢 CÁMARA ACTIVA";
 
+      estado.innerHTML =
+        "● Cámara activa — LISTO PARA ESCANEAR";
 
-            if (
-                nombre.includes("back") ||
-                nombre.includes("rear") ||
-                nombre.includes("trasera") ||
-                nombre.includes("posterior")
-            ) {
+      estado.className =
+        "estado activo";
 
-                camaraSeleccionada =
-                    camaras[i];
-
-                break;
-            }
-        }
-
-
-        // ----------------------------------------------------
-        // CREAR LECTOR
-        // ----------------------------------------------------
-
-        if (lector) {
-
-            try {
-
-                await lector.clear();
-
-            } catch (error) {
-
-                console.log(error);
-
-            }
-
-        }
-
-
-        lector =
-            new Html5Qrcode("reader");
-
-
-        mostrarMensaje(
-            "AVISO",
-            "📷 INICIANDO CÁMARA...",
-            "",
-            ""
-        );
-
-
-        // ----------------------------------------------------
-        // INICIAR CÁMARA REAL
-        // ----------------------------------------------------
-
-        await lector.start(
-
-            camaraSeleccionada.id,
-
-            {
-
-                fps: 10,
-
-                qrbox: {
-                    width: 250,
-                    height: 250
-                },
-
-                aspectRatio: 1.0,
-
-                disableFlip: false
-
-            },
-
-
-            function(codigoQR) {
-
-                procesarQR(codigoQR);
-
-            },
-
-
-            function(errorMessage) {
-
-                // Errores normales de búsqueda QR.
-                // No mostrar.
-
-            }
-
-        );
-
-
-        // ----------------------------------------------------
-        // TODO CORRECTO
-        // ----------------------------------------------------
-
-        camaraActiva = true;
-
-
-        boton.innerText =
-            "🟢 CÁMARA ACTIVA";
-
-
-        boton.disabled = true;
-
-
-        mostrarMensaje(
-            "AVISO",
-            "📱 ESCANEE EL CÓDIGO QR",
-            "",
-            ""
-        );
-
+      mostrarMensaje(
+        "📷 Cámara activa. Acerque el código QR.",
+        "info"
+      );
 
     }
 
     catch (error) {
 
-        console.error(
-            "ERROR DE CÁMARA:",
-            error
-        );
+      console.error(error);
+
+      camaraActiva = false;
+
+      boton.disabled = false;
+
+      boton.innerHTML = "📷 ACTIVAR CÁMARA";
+
+      estado.innerHTML =
+        "Cámara desactivada";
+
+      estado.className =
+        "estado inactivo";
 
 
-        camaraActiva = false;
+      let mensajeError =
+        "❌ NO SE PUDO ACTIVAR LA CÁMARA.";
 
 
-        boton.disabled = false;
+      if (error.name === "NotAllowedError") {
 
-        boton.innerText =
-            "📷 ACTIVAR CÁMARA";
+        mensajeError +=
+          "<br><br>El permiso de cámara fue rechazado. " +
+          "Debe permitir el uso de la cámara en el navegador.";
+
+      }
+
+      else if (error.name === "NotFoundError") {
+
+        mensajeError +=
+          "<br><br>No se encontró ninguna cámara.";
+
+      }
+
+      else if (error.name === "NotReadableError") {
+
+        mensajeError +=
+          "<br><br>La cámara está siendo utilizada por otra aplicación.";
+
+      }
+
+      else if (error.name === "SecurityError") {
+
+        mensajeError +=
+          "<br><br>El navegador bloqueó el acceso por seguridad.";
+
+      }
+
+      else {
+
+        mensajeError +=
+          "<br><br>" +
+          (error.message || "Error desconocido.");
+
+      }
 
 
-        mostrarErrorCamara(error);
+      mostrarMensaje(
+        mensajeError,
+        "error"
+      );
 
     }
 
-}
+  }
 
 
-// ============================================================
-// MOSTRAR ERROR DE CÁMARA
-// ============================================================
+  /* =========================================================
+     PROCESAR QR
+  ========================================================= */
 
-function mostrarErrorCamara(error) {
+  function procesarQR(texto) {
 
-    let mensaje =
-        "❌ NO SE PUDO ACTIVAR LA CÁMARA";
+    if (procesando) {
+      return;
+    }
+
+
+    const ci =
+      String(texto)
+      .trim()
+      .replace(/\s+/g, "");
+
+
+    if (!ci) {
+      return;
+    }
+
+
+    /*
+     * Evitar que el mismo QR se detecte
+     * varias veces inmediatamente.
+     */
+
+    const ahora = Date.now();
 
 
     if (
-        error &&
-        error.name === "NotAllowedError"
+      ci === ultimoQR &&
+      ahora - ultimoTiempoQR < 2500
     ) {
 
-        mensaje =
-            "🚫 PERMISO DE CÁMARA DENEGADO";
+      return;
 
     }
 
 
-    else if (
-        error &&
-        error.name === "NotFoundError"
-    ) {
+    ultimoQR = ci;
 
-        mensaje =
-            "📷 NO SE ENCONTRÓ LA CÁMARA";
-
-    }
+    ultimoTiempoQR = ahora;
 
 
-    else if (
-        error &&
-        error.name === "NotReadableError"
-    ) {
-
-        mensaje =
-            "⚠️ LA CÁMARA ESTÁ SIENDO USADA POR OTRA APLICACIÓN";
-
-    }
-
-
-    else if (
-        error &&
-        error.name === "SecurityError"
-    ) {
-
-        mensaje =
-            "🔒 EL NAVEGADOR BLOQUEÓ LA CÁMARA";
-
-    }
-
-
-    else if (
-        error &&
-        error.message
-    ) {
-
-        mensaje =
-            "❌ " +
-            error.message;
-
-    }
-
-
-    mostrarMensaje(
-        "ERROR",
-        mensaje,
-        "",
-        ""
-    );
-
-
-    hablar(
-        mensaje.replace(
-            /[❌🚫📷⚠️🔒]/g,
-            ""
-        )
-    );
-
-}
-
-
-// ============================================================
-// PROCESAR QR
-// ============================================================
-
-function procesarQR(codigo) {
-
-    if (procesando) {
-        return;
-    }
-
+    /*
+     * Bloquear temporalmente
+     */
 
     procesando = true;
 
 
-    const ci =
-        String(
-            codigo || ""
-        ).trim();
-
-
-    if (ci === "") {
-
-        procesando = false;
-
-        return;
-    }
-
-
-    // --------------------------------------------------------
-    // PAUSAR LECTOR
-    // --------------------------------------------------------
-
-    if (lector) {
-
-        try {
-
-            lector.pause(true);
-
-        } catch (error) {
-
-            console.log(error);
-
-        }
-
-    }
-
-
-    mostrarMensaje(
-        "AVISO",
-        "🔎 VERIFICANDO...",
-        "",
-        ""
-    );
-
-
-    enviarCI(ci);
-
-}
-
-
-// ============================================================
-// ENVIAR C.I. AL APPS SCRIPT
-// ============================================================
-
-function enviarCI(ci) {
-
-
-    const callbackName =
-        "respuestaQR_" +
-        Date.now();
-
-
-    window[callbackName] =
-        function(respuesta) {
-
-            try {
-
-                mostrarResultado(
-                    respuesta
-                );
-
-            }
-
-            catch (error) {
-
-                mostrarMensaje(
-                    "ERROR",
-                    "❌ ERROR AL PROCESAR RESPUESTA",
-                    "",
-                    ""
-                );
-
-            }
-
-
-            finally {
-
-                delete window[callbackName];
-
-
-                setTimeout(
-                    function() {
-
-                        procesando = false;
-
-
-                        if (lector && camaraActiva) {
-
-                            try {
-
-                                lector.resume();
-
-                            }
-
-                            catch (error) {
-
-                                console.log(error);
-
-                            }
-
-                        }
-
-                    },
-                    3000
-                );
-
-            }
-
-        };
-
-
-    const script =
-        document.createElement("script");
-
-
-    script.src =
-        URL_APPS_SCRIPT +
-        "?ci=" +
-        encodeURIComponent(ci) +
-        "&callback=" +
-        encodeURIComponent(callbackName);
-
-
-    script.onerror =
-        function() {
-
-            mostrarMensaje(
-                "ERROR",
-                "❌ ERROR DE CONEXIÓN CON EL SERVIDOR",
-                "",
-                ""
-            );
-
-
-            hablar(
-                "Error de conexión con el sistema"
-            );
-
-
-            delete window[callbackName];
-
-
-            setTimeout(
-                function() {
-
-                    procesando = false;
-
-
-                    if (lector && camaraActiva) {
-
-                        try {
-
-                            lector.resume();
-
-                        }
-
-                        catch (error) {
-
-                            console.log(error);
-
-                        }
-
-                    }
-
-                },
-                3000
-            );
-
-        };
-
-
-    document.body.appendChild(
-        script
-    );
-
-}
-
-
-// ============================================================
-// MOSTRAR RESULTADO
-// ============================================================
-
-function mostrarResultado(respuesta) {
-
-
-    if (!respuesta) {
-
-        mostrarMensaje(
-            "ERROR",
-            "❌ SIN RESPUESTA DEL SISTEMA",
-            "",
-            ""
-        );
-
-        hablar(
-            "Sin respuesta del sistema"
-        );
-
-        return;
-    }
-
-
-    // --------------------------------------------------------
-    // REGISTRADO
-    // --------------------------------------------------------
-
-    if (
-        respuesta.estado === "OK"
-    ) {
-
-        mostrarMensaje(
-            "OK",
-            "✅ ASISTENCIA REGISTRADA",
-            respuesta.nombre || "",
-            respuesta.hora || ""
-        );
-
-
-        hablar(
-            "Asistencia registrada. " +
-            (respuesta.nombre || "")
-        );
-
-
-        return;
-    }
-
-
-    // --------------------------------------------------------
-    // YA REGISTRADO
-    // --------------------------------------------------------
-
-    if (
-        respuesta.estado === "YA"
-    ) {
-
-        mostrarMensaje(
-            "AVISO",
-            "⚠️ ASISTENCIA YA REGISTRADA",
-            respuesta.nombre || "",
-            ""
-        );
-
-
-        hablar(
-            "Asistencia ya registrada. " +
-            (respuesta.nombre || "")
-        );
-
-
-        return;
-    }
-
-
-    // --------------------------------------------------------
-    // ERROR
-    // --------------------------------------------------------
-
-    mostrarMensaje(
-        "ERROR",
-        "❌ " +
-        (
-            respuesta.mensaje ||
-            "ERROR"
-        ),
-        "",
-        ""
-    );
-
-
-    hablar(
-        respuesta.mensaje ||
-        "Error"
-    );
-
-}
-
-
-// ============================================================
-// MOSTRAR MENSAJE
-// ============================================================
-
-function mostrarMensaje(
-    tipo,
-    mensaje,
-    nombre,
-    hora
-) {
-
-
-    const resultado =
-        document.getElementById(
-            "resultado"
-        );
-
-
-    resultado.className = "";
-
-
-    if (
-        tipo === "OK"
-    ) {
-
-        resultado.classList.add(
-            "ok"
-        );
-
-    }
-
-    else if (
-        tipo === "ERROR"
-    ) {
-
-        resultado.classList.add(
-            "error"
-        );
-
-    }
-
-    else {
-
-        resultado.classList.add(
-            "aviso"
-        );
-
-    }
-
-
-    let html =
-        '<div class="estado">' +
-        escaparHTML(mensaje) +
-        '</div>';
-
-
-    if (nombre) {
-
-        html +=
-            '<div class="nombre">' +
-            escaparHTML(nombre) +
-            '</div>';
-
-    }
-
-
-    if (hora) {
-
-        html +=
-            '<div class="hora">' +
-            '🕐 ' +
-            escaparHTML(hora) +
-            '</div>';
-
-    }
-
-
-    resultado.innerHTML =
-        html;
-
-}
-
-
-// ============================================================
-// PROTEGER TEXTO
-// ============================================================
-
-function escaparHTML(texto) {
-
-    return String(texto || "")
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-
-}
-
-
-// ============================================================
-// VOZ
-// ============================================================
-
-function hablar(texto) {
+    /*
+     * Pausar lectura mientras se consulta
+     */
 
     try {
 
-        if (
-            !("speechSynthesis" in window)
-        ) {
+      if (lector) {
 
-            return;
+        lector.pause(true);
 
+      }
+
+    }
+
+    catch (e) {
+
+      console.log(
+        "No fue necesario pausar el lector."
+      );
+
+    }
+
+
+    mostrarMensaje(
+      "⏳ VERIFICANDO...",
+      "info"
+    );
+
+
+    /*
+     * Enviar CI al servidor
+     */
+
+    enviarCI(ci);
+
+  }
+
+
+  /* =========================================================
+     ENVIAR CI A GOOGLE APPS SCRIPT
+  ========================================================= */
+
+  function enviarCI(ci) {
+
+    const callbackName =
+      "respuestaQR_" +
+      Date.now() +
+      "_" +
+      Math.floor(Math.random() * 100000);
+
+
+    const url =
+      URL_APPS_SCRIPT +
+      "?ci=" +
+      encodeURIComponent(ci) +
+      "&callback=" +
+      encodeURIComponent(callbackName);
+
+
+    const script =
+      document.createElement("script");
+
+
+    let finalizado = false;
+
+
+    /*
+     * Tiempo máximo de espera.
+     */
+
+    const tiempoEspera =
+      setTimeout(function() {
+
+        if (finalizado) {
+          return;
         }
 
 
-        window.speechSynthesis.cancel();
+        finalizar();
 
 
-        const voz =
-            new SpeechSynthesisUtterance(
-                texto
+        mostrarResultado({
+
+          ok: false,
+
+          mensaje:
+            "El servidor está tardando demasiado en responder."
+
+        });
+
+
+      }, 10000);
+
+
+    /*
+     * Finalizar y limpiar.
+     */
+
+    function finalizar() {
+
+      if (finalizado) {
+        return;
+      }
+
+
+      finalizado = true;
+
+
+      clearTimeout(tiempoEspera);
+
+
+      try {
+
+        delete window[callbackName];
+
+      }
+
+      catch (e) {
+
+        console.log(e);
+
+      }
+
+
+      if (script.parentNode) {
+
+        script.parentNode.removeChild(script);
+
+      }
+
+    }
+
+
+    /*
+     * Respuesta del servidor
+     */
+
+    window[callbackName] =
+      function(respuesta) {
+
+        if (finalizado) {
+          return;
+        }
+
+
+        finalizar();
+
+
+        /*
+         * Mostrar resultado inmediatamente.
+         */
+
+        mostrarResultado(respuesta);
+
+
+        /*
+         * Preparar inmediatamente el siguiente escaneo.
+         */
+
+        procesando = false;
+
+
+        /*
+         * Reanudar lector rápidamente.
+         */
+
+        setTimeout(function() {
+
+          try {
+
+            if (lector && camaraActiva) {
+
+              lector.resume();
+
+            }
+
+          }
+
+          catch (error) {
+
+            console.log(
+              "No se pudo reanudar el lector:",
+              error
             );
 
+          }
 
-        voz.lang =
-            "es-ES";
+        }, 450);
 
-
-        voz.rate =
-            0.95;
+      };
 
 
-        voz.pitch =
-            1;
+    /*
+     * Error de carga del JSONP
+     */
+
+    script.onerror =
+      function() {
+
+        if (finalizado) {
+          return;
+        }
 
 
-        window.speechSynthesis.speak(
-            voz
-        );
+        finalizar();
+
+
+        mostrarResultado({
+
+          ok: false,
+
+          mensaje:
+            "No se pudo comunicar con el servidor."
+
+        });
+
+
+        procesando = false;
+
+
+        setTimeout(function() {
+
+          try {
+
+            if (lector && camaraActiva) {
+
+              lector.resume();
+
+            }
+
+          }
+
+          catch (error) {
+
+            console.log(error);
+
+          }
+
+        }, 450);
+
+      };
+
+
+    script.src = url;
+
+
+    document.body.appendChild(script);
+
+  }
+
+
+  /* =========================================================
+     MOSTRAR RESULTADO
+  ========================================================= */
+
+  function mostrarResultado(respuesta) {
+
+    const resultado =
+      document.getElementById("resultado");
+
+
+    /*
+     * Si el servidor responde vacío.
+     */
+
+    if (!respuesta) {
+
+      respuesta = {
+
+        ok: false,
+
+        mensaje:
+          "Respuesta vacía del servidor."
+
+      };
+
+    }
+
+
+    /*
+     * NORMALIZAR RESPUESTA
+     */
+
+    const ok =
+      respuesta.ok === true ||
+      respuesta.estado === "OK";
+
+
+    const yaRegistrado =
+      respuesta.estado === "YA" ||
+      respuesta.yaRegistrado === true;
+
+
+    let nombre =
+      respuesta.nombre ||
+      respuesta.nombreCompleto ||
+      "";
+
+
+    let textoAudio = "";
+
+
+    /*
+     * ASISTENCIA REGISTRADA
+     */
+
+    if (ok) {
+
+      resultado.className =
+        "resultado-ok";
+
+
+      resultado.innerHTML =
+
+        '<div class="icono">✅</div>' +
+
+        '<div class="nombre">' +
+          (nombre || "Estudiante") +
+        '</div>' +
+
+        '<div class="detalle">' +
+          'ASISTENCIA REGISTRADA' +
+        '</div>';
+
+
+      resultado.style.display = "block";
+
+
+      textoAudio =
+        "Asistencia registrada. " +
+        (nombre || "Estudiante");
+
+
+      /*
+       * El audio se ejecuta aparte.
+       * NO bloquea el lector.
+       */
+
+      setTimeout(function() {
+
+        hablar(textoAudio);
+
+      }, 50);
+
+
+      mostrarMensaje(
+        "✅ ASISTENCIA REGISTRADA",
+        "exito"
+      );
+
+
+      return;
+
+    }
+
+
+    /*
+     * YA REGISTRADO
+     */
+
+    if (yaRegistrado) {
+
+      resultado.className =
+        "resultado-ya";
+
+
+      resultado.innerHTML =
+
+        '<div class="icono">⚠️</div>' +
+
+        '<div class="nombre">' +
+          (nombre || "Estudiante") +
+        '</div>' +
+
+        '<div class="detalle">' +
+          'YA TIENE LA ASISTENCIA REGISTRADA' +
+        '</div>';
+
+
+      resultado.style.display = "block";
+
+
+      textoAudio =
+        "Atención. " +
+        (nombre || "Estudiante") +
+        ". Ya tiene registrada su asistencia.";
+
+
+      setTimeout(function() {
+
+        hablar(textoAudio);
+
+      }, 50);
+
+
+      mostrarMensaje(
+        "⚠️ YA TIENE ASISTENCIA REGISTRADA",
+        "advertencia"
+      );
+
+
+      return;
+
+    }
+
+
+    /*
+     * ERROR
+     */
+
+    resultado.className =
+      "resultado-error";
+
+
+    resultado.innerHTML =
+
+      '<div class="icono">❌</div>' +
+
+      '<div class="nombre">ERROR</div>' +
+
+      '<div class="detalle">' +
+
+        (
+          respuesta.mensaje ||
+          respuesta.error ||
+          "No se pudo registrar la asistencia."
+        ) +
+
+      '</div>';
+
+
+    resultado.style.display = "block";
+
+
+    mostrarMensaje(
+      "❌ NO SE PUDO REGISTRAR",
+      "error"
+    );
+
+
+    setTimeout(function() {
+
+      hablar(
+        "No se pudo registrar la asistencia."
+      );
+
+    }, 50);
+
+  }
+
+
+  /* =========================================================
+     VOZ
+  ========================================================= */
+
+  function hablar(texto) {
+
+    try {
+
+      if (
+        !("speechSynthesis" in window)
+      ) {
+
+        return;
+
+      }
+
+
+      /*
+       * Eliminar audios anteriores
+       * para evitar una cola de voces.
+       */
+
+      speechSynthesis.cancel();
+
+
+      const voz =
+        new SpeechSynthesisUtterance(texto);
+
+
+      voz.lang = "es-ES";
+
+      voz.rate = 1.08;
+
+      voz.pitch = 1;
+
+      voz.volume = 1;
+
+
+      speechSynthesis.speak(voz);
 
     }
 
     catch (error) {
 
-        console.log(
-            "Error de voz:",
-            error
-        );
+      console.log(
+        "Error de síntesis de voz:",
+        error
+      );
 
     }
 
-}
+  }
 
 
-// ============================================================
-// DETENER CÁMARA AL SALIR
-// ============================================================
+  /* =========================================================
+     DETENER CÁMARA AL SALIR
+  ========================================================= */
 
-window.addEventListener(
+  window.addEventListener(
     "beforeunload",
     function() {
 
+      try {
+
         if (lector) {
 
-            try {
-
-                lector.stop();
-
-            }
-
-            catch (error) {
-
-                console.log(error);
-
-            }
+          lector.stop()
+          .catch(function() {});
 
         }
 
+      }
+
+      catch (error) {
+
+        console.log(error);
+
+      }
+
     }
-);
+  );
 
 
 </script>
 
 </body>
-
 </html>
+```
